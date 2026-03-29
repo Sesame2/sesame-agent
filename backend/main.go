@@ -20,7 +20,16 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.CORS())
 
+	// 公开路由：认证
+	auth := r.Group("/api/auth")
+	{
+		auth.POST("/register", handlers.RegisterHandler(cfg))
+		auth.POST("/login", handlers.LoginHandler(cfg))
+	}
+
+	// 受保护路由：需要 JWT
 	api := r.Group("/api")
+	api.Use(middleware.Auth(cfg.JWTSecret))
 	{
 		api.POST("/chat", handlers.ChatHandler(llmClient))
 		api.GET("/history/:session_id", handlers.HistoryHandler)

@@ -20,7 +20,7 @@ func Init(dsn string) {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	if err = DB.AutoMigrate(&models.Session{}, &models.Message{}); err != nil {
+	if err = DB.AutoMigrate(&models.User{}, &models.Session{}, &models.Message{}); err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
 	log.Println("[DB] SQLite initialized at", dsn)
