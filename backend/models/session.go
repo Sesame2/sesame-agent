@@ -4,6 +4,7 @@ import "time"
 
 type Session struct {
 	ID        string    `gorm:"primaryKey" json:"id"`
+	UserID    string    `gorm:"index;not null" json:"user_id"`
 	Title     string    `json:"title"`
 	CreatedAt time.Time `json:"created_at"`
 }

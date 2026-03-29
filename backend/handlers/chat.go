@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sesame-agent/backend/db"
 	"github.com/sesame-agent/backend/llm"
+	"github.com/sesame-agent/backend/middleware"
 	"github.com/sesame-agent/backend/models"
 )
 
@@ -38,20 +39,28 @@ func ChatHandler(llmClient llm.StreamClient) gin.HandlerFunc {
 			return
 		}
 
-		// 1. 确保 Session 存在
+		// 从 auth 中间件获取 user_id
+		userID, exists := c.Get(middleware.ContextUserIDKey)
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id not found in context"})
+			return
+		}
+		uid := userID.(string)
+
+		// 1. 确保 Session 存在（且属于当前用户）
 		var session models.Session
-		if result := db.DB.First(&session, "id = ?", req.SessionID); result.Error != nil {
+		if result := db.DB.Where("id = ? AND user_id = ?", req.SessionID, uid).First(&session); result.Error != nil {
 			title := req.Message
 			if len([]rune(title)) > 20 {
 				title = string([]rune(title)[:20]) + "..."
 			}
-			session = models.Session{ID: req.SessionID, Title: title, CreatedAt: time.Now()}
+			session = models.Session{ID: req.SessionID, UserID: uid, Title: title, CreatedAt: time.Now()}
 			db.DB.Create(&session)
 		}
 
 		// 2. 加载历史，构建 LLM 上下文
 		var history []models.Message
-		db.DB.Where("session_id = ?", req.SessionID).Order("created_at asc").Find(&history)
+		db.DB.Where("session_id = ? AND user_id = ?", req.SessionID, uid).Order("created_at asc").Find(&history)
 
 		messages := []llm.ChatMessage{{Role: "system", Content: llm.SystemPrompt}}
 		for _, h := range history {
@@ -62,6 +71,7 @@ func ChatHandler(llmClient llm.StreamClient) gin.HandlerFunc {
 		// 3. 保存用户消息
 		db.DB.Create(&models.Message{
 			SessionID: req.SessionID,
+			UserID:    uid,
 			Role:      "user",
 			Content:   req.Message,
 			CreatedAt: time.Now(),
@@ -111,6 +121,7 @@ func ChatHandler(llmClient llm.StreamClient) gin.HandlerFunc {
 		go func() {
 			db.DB.Create(&models.Message{
 				SessionID:   req.SessionID,
+				UserID:      uid,
 				Role:        "assistant",
 				Content:     responseContent,
 				CodeSnippet: extractCodeSnippet(responseContent),
