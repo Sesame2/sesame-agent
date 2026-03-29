@@ -2,12 +2,50 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/sesame-agent/backend/db"
 	"github.com/sesame-agent/backend/middleware"
 	"github.com/sesame-agent/backend/models"
 )
+
+// CreateSessionRequest 创建会话请求体
+type CreateSessionRequest struct {
+	Title string `json:"title"`
+}
+
+// CreateSessionHandler 创建新会话
+func CreateSessionHandler(c *gin.Context) {
+	userID, exists := c.Get(middleware.ContextUserIDKey)
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id not found in context"})
+		return
+	}
+	uid := userID.(string)
+
+	var req CreateSessionRequest
+	c.ShouldBindJSON(&req)
+
+	title := req.Title
+	if title == "" {
+		title = "新会话"
+	}
+
+	session := models.Session{
+		ID:        uuid.New().String(),
+		UserID:    uid,
+		Title:     title,
+		CreatedAt: time.Now(),
+	}
+	if result := db.DB.Create(&session); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create session"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, session)
+}
 
 // ListSessionsHandler 返回当前用户的所有会话，按创建时间倒序
 func ListSessionsHandler(c *gin.Context) {

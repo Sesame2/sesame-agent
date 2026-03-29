@@ -32,6 +32,7 @@ func main() {
 	api.Use(middleware.Auth(cfg.JWTSecret))
 	{
 		api.POST("/chat", handlers.ChatHandler(llmClient))
+		api.POST("/sessions", handlers.CreateSessionHandler)
 		api.GET("/sessions", handlers.ListSessionsHandler)
 		api.DELETE("/sessions/:id", handlers.DeleteSessionHandler)
 		api.GET("/history/:session_id", handlers.HistoryHandler)

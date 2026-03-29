@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { SessionsResponse } from '../types';
+import type { SessionsResponse, Session } from '../types';
 
 const TOKEN_KEY = 'sesame_token';
 
@@ -63,4 +63,9 @@ export async function listSessions() {
 
 export async function deleteSession(id: string) {
   await apiClient.delete(`/api/sessions/${id}`);
+}
+
+export async function createSession(title?: string) {
+  const { data } = await apiClient.post<Session>('/api/sessions', { title: title || '' });
+  return data as Session;
 }

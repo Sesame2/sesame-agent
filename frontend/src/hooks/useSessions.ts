@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { Session } from '../types';
-import { listSessions, deleteSession as apiDeleteSession } from '../api/client';
+import { listSessions, deleteSession as apiDeleteSession, createSession as apiCreateSession } from '../api/client';
 
 export function useSessions(currentSessionId: string, onSwitch: (id: string) => void) {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -20,10 +20,14 @@ export function useSessions(currentSessionId: string, onSwitch: (id: string) => 
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const createSession = useCallback(() => {
-    // 使用 useSession hook 会在切换时生成新的 ID
-    // 这里只需触发 onSwitch
-    onSwitch('__new__');
+  const createSession = useCallback(async () => {
+    try {
+      const newSession = await apiCreateSession();
+      setSessions(prev => [newSession, ...prev]);
+      onSwitch(newSession.id);
+    } catch (e) {
+      console.error('Failed to create session:', e);
+    }
   }, [onSwitch]);
 
   const deleteSession = useCallback(async (id: string) => {
@@ -31,7 +35,15 @@ export function useSessions(currentSessionId: string, onSwitch: (id: string) => 
       await apiDeleteSession(id);
       setSessions(prev => prev.filter(s => s.id !== id));
       if (id === currentSessionId) {
-        onSwitch('__new__');
+        // 删除当前会话时，创建新会话并切换
+        try {
+          const newSession = await apiCreateSession();
+          setSessions(prev => [newSession, ...prev]);
+          onSwitch(newSession.id);
+        } catch (e) {
+          console.error('Failed to create fallback session:', e);
+          onSwitch('__new__');
+        }
       }
     } catch (e) {
       console.error('Failed to delete session:', e);

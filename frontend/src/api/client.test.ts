@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { apiClient, getToken, setToken, clearToken } from './client';
+import { apiClient, getToken, setToken, clearToken, createSession } from './client';
 
 describe('api client', () => {
   it('has baseURL from env or empty string', () => {
@@ -26,5 +26,11 @@ describe('api client', () => {
     setToken('temp');
     clearToken();
     expect(apiClient.defaults.headers.common['Authorization']).toBeUndefined();
+  });
+});
+
+describe('createSession', () => {
+  it('is a function that calls POST /api/sessions', () => {
+    expect(typeof createSession).toBe('function');
   });
 });

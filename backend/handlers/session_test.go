@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -33,6 +34,7 @@ func setupSessionRouter(t *testing.T) *gin.Engine {
 
 	api := router.Group("/api")
 	{
+		api.POST("/sessions", CreateSessionHandler)
 		api.GET("/sessions", ListSessionsHandler)
 		api.DELETE("/sessions/:id", DeleteSessionHandler)
 	}
@@ -169,5 +171,62 @@ func TestDeleteSessionHandler_CrossUser(t *testing.T) {
 
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("expected 404 (cross-user), got %d", w.Code)
+	}
+}
+
+func TestCreateSessionHandler_Success(t *testing.T) {
+	router := setupSessionRouter(t)
+	token := generateTestToken(t)
+
+	body := `{"title":"新会话"}`
+	req := httptest.NewRequest("POST", "/api/sessions", bytes.NewBufferString(body))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var resp models.Session
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	if resp.ID == "" {
+		t.Fatalf("expected non-empty session ID, got: %s", w.Body.String())
+	}
+	if resp.Title != "新会话" {
+		t.Fatalf("expected title '新会话', got '%s'", resp.Title)
+	}
+	if resp.UserID != "user-1" {
+		t.Fatalf("expected user_id 'user-1', got '%s'", resp.UserID)
+	}
+
+	// 验证 session 在数据库中
+	var found models.Session
+	result := db.DB.Where("id = ?", resp.ID).First(&found)
+	if result.Error != nil {
+		t.Fatalf("session should exist in DB: %v (resp.ID=%s)", result.Error, resp.ID)
+	}
+}
+
+func TestCreateSessionHandler_DefaultTitle(t *testing.T) {
+	router := setupSessionRouter(t)
+	token := generateTestToken(t)
+
+	body := `{}`
+	req := httptest.NewRequest("POST", "/api/sessions", bytes.NewBufferString(body))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var resp models.Session
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	if resp.Title != "新会话" {
+		t.Fatalf("expected default title '新会话', got '%s'", resp.Title)
 	}
 }
