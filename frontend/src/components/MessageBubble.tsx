@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Message } from '../types';
+import type { Message } from '../types';
 import { LoadingDots } from './LoadingDots';
 
 interface Props { message: Message; }

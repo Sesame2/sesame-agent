@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Message } from '../types';
+import type { Message } from '../types';
 import { extractCodeFromMarkdown } from '../utils/codeExtractor';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
