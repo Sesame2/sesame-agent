@@ -1,7 +1,75 @@
+import { type Components } from 'react-markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Message } from '../types';
 import { LoadingDots } from './LoadingDots';
+
+/**
+ * Markdown 组件覆盖配置
+ * 关键修复：分离 pre 和 code 的处理，避免嵌套 <pre>
+ */
+const markdownComponents: Components = {
+  // 代码块的外层 <pre> —— 只负责容器样式
+  pre({ children }) {
+    return (
+      <pre className="bg-gray-800 text-green-300 rounded-lg p-3 overflow-x-auto text-xs my-2">
+        {children}
+      </pre>
+    );
+  },
+  // <code> —— 区分行内代码和代码块内的 code
+  code({ className, children, ...props }) {
+    const isBlock = Boolean(className); // 有 className 说明是代码块 (language-xxx)
+    if (isBlock) {
+      // 代码块内的 code，pre 已经处理了外层样式
+      return <code className={className} {...props}>{children}</code>;
+    }
+    // 行内代码
+    return (
+      <code className="bg-gray-200 text-red-600 px-1 rounded text-xs" {...props}>
+        {children}
+      </code>
+    );
+  },
+  // GFM 表格
+  table({ children }) {
+    return (
+      <div className="overflow-x-auto my-2">
+        <table className="min-w-full text-xs border-collapse border border-gray-300">
+          {children}
+        </table>
+      </div>
+    );
+  },
+  th({ children }) {
+    return (
+      <th className="border border-gray-300 bg-gray-100 px-2 py-1 text-left font-medium">
+        {children}
+      </th>
+    );
+  },
+  td({ children }) {
+    return (
+      <td className="border border-gray-300 px-2 py-1">{children}</td>
+    );
+  },
+  // 链接
+  a({ href, children }) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline hover:text-indigo-800">
+        {children}
+      </a>
+    );
+  },
+  // 无序列表
+  ul({ children }) {
+    return <ul className="list-disc list-inside my-1 space-y-0.5">{children}</ul>;
+  },
+  // 有序列表
+  ol({ children }) {
+    return <ol className="list-decimal list-inside my-1 space-y-0.5">{children}</ol>;
+  },
+};
 
 interface Props { message: Message; }
 
@@ -25,19 +93,7 @@ export function MessageBubble({ message }: Props) {
         ) : (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            components={{
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              code({ className, children, ...props }: any) {
-                const isBlock = /language-/.test(className || '');
-                return isBlock ? (
-                  <pre className="bg-gray-800 text-green-300 rounded-lg p-3 overflow-x-auto text-xs my-2">
-                    <code {...props}>{children}</code>
-                  </pre>
-                ) : (
-                  <code className="bg-gray-200 text-red-600 px-1 rounded text-xs" {...props}>{children}</code>
-                );
-              },
-            }}
+            components={markdownComponents}
           >
             {message.content}
           </ReactMarkdown>
