@@ -1,6 +1,7 @@
 export interface Message {
   id?: number;
   session_id?: string;
+  user_id?: string;
   role: 'user' | 'assistant';
   content: string;
   code_snippet?: string;
@@ -10,4 +11,15 @@ export interface Message {
 
 export interface HistoryResponse {
   messages: Message[];
+}
+
+export interface User {
+  id: string;
+  username: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user_id: string;
+  username: string;
 }
