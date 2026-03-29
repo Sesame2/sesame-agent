@@ -15,7 +15,7 @@ func main() {
 	cfg := config.Load()
 	db.Init(cfg.DBPath)
 
-	llmClient := llm.NewClient(cfg.LLMProvider, cfg.APIKey, cfg.ModelName)
+	llmClient := llm.NewClient(cfg.LLMProvider, cfg.APIKey, cfg.ModelName, cfg.BaseURL)
 
 	r := gin.Default()
 	r.Use(middleware.CORS())

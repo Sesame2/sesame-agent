@@ -26,11 +26,12 @@ const SystemPrompt = "你是一个顶级的前端工程师（类似 Claude Artif
 	"4. 在代码块之前，先用1-2句话简短描述你的实现思路。"
 
 // NewClient 根据 provider 创建对应的 LLM 客户端
-func NewClient(provider, apiKey, modelName string) StreamClient {
+// baseURL 为空时使用各 provider 的默认地址；设置后可对接任何 OpenAI-compatible 接口（如 Qwen）
+func NewClient(provider, apiKey, modelName, baseURL string) StreamClient {
 	switch provider {
 	case "anthropic":
 		return NewAnthropicClient(apiKey, modelName)
 	default:
-		return NewOpenAIClient(apiKey, modelName)
+		return NewOpenAIClient(apiKey, modelName, baseURL)
 	}
 }

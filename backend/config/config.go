@@ -12,6 +12,7 @@ type Config struct {
 	LLMProvider string // "openai" | "anthropic"
 	APIKey      string
 	ModelName   string
+	BaseURL     string // 自定义 API base URL，兼容 Qwen / 其他 OpenAI-compatible 接口
 	DBPath      string
 }
 
@@ -23,6 +24,7 @@ func Load() *Config {
 		LLMProvider: getEnv("LLM_PROVIDER", "openai"),
 		APIKey:      getEnv("API_KEY", ""),
 		ModelName:   getEnv("MODEL_NAME", "gpt-4o"),
+		BaseURL:     getEnv("BASE_URL", ""),
 		DBPath:      getEnv("DB_PATH", "./data.db"),
 	}
 
