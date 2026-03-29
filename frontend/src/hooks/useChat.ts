@@ -5,7 +5,7 @@ import { apiClient, getToken } from '../api/client';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
-export function useChat(sessionId: string) {
+export function useChat(sessionId: string, onAfterChat?: () => void) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentCode, setCurrentCode] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +13,9 @@ export function useChat(sessionId: string) {
 
   // 加载历史
   const loadHistory = useCallback(async () => {
+    // 先重置状态，避免切换会话时残留上一个会话的内容
+    setMessages([]);
+    setCurrentCode('');
     try {
       const res = await apiClient.get(`/api/history/${sessionId}`);
       const data = res.data;
@@ -96,6 +99,9 @@ export function useChat(sessionId: string) {
         updated[updated.length - 1] = { role: 'assistant', content: fullContent, isStreaming: false };
         return updated;
       });
+
+      // 刷新会话列表以获取更新后的标题
+      onAfterChat?.();
 
     } catch (e: unknown) {
       if (e instanceof Error) {

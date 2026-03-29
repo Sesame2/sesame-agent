@@ -11,8 +11,8 @@ import { useChat } from './hooks/useChat';
 
 function AppShell() {
   const { sessionId, createOrSwitch } = useSession();
-  const { messages, currentCode, isLoading, sendMessage, stopStreaming } = useChat(sessionId);
-  const { sessions, loading: sessionsLoading, createSession, deleteSession } = useSessions(sessionId, createOrSwitch);
+  const { sessions, loading: sessionsLoading, refresh: refreshSessions, createSession, deleteSession } = useSessions(sessionId, createOrSwitch);
+  const { messages, currentCode, isLoading, sendMessage, stopStreaming } = useChat(sessionId, refreshSessions);
 
   return (
     <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">

@@ -50,12 +50,12 @@ func ChatHandler(llmClient llm.StreamClient) gin.HandlerFunc {
 		// 1. 确保 Session 存在（且属于当前用户）
 		var session models.Session
 		if result := db.DB.Where("id = ? AND user_id = ?", req.SessionID, uid).First(&session); result.Error != nil {
-			title := req.Message
-			if len([]rune(title)) > 20 {
-				title = string([]rune(title)[:20]) + "..."
-			}
+			title := truncateTitle(req.Message, 20)
 			session = models.Session{ID: req.SessionID, UserID: uid, Title: title, CreatedAt: time.Now()}
 			db.DB.Create(&session)
+		} else {
+			// Session 已存在，如果是默认标题则用首条消息更新
+			updateSessionTitleIfNeeded(req.SessionID, uid, req.Message)
 		}
 
 		// 2. 加载历史，构建 LLM 上下文
