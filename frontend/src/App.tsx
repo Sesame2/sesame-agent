@@ -1,9 +1,12 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthGuard } from './components/AuthGuard';
+import { LoginPage } from './pages/LoginPage';
 import { ChatPanel } from './components/ChatPanel';
 import { PreviewPanel } from './components/PreviewPanel';
 import { useSession } from './hooks/useSession';
 import { useChat } from './hooks/useChat';
 
-export default function App() {
+function AppShell() {
   const sessionId = useSession();
   const { messages, currentCode, isLoading, sendMessage, stopStreaming } = useChat(sessionId);
 
@@ -16,5 +19,24 @@ export default function App() {
         <PreviewPanel code={currentCode} />
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <AuthGuard>
+              <AppShell />
+            </AuthGuard>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
