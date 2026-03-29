@@ -25,8 +25,7 @@ export function ChatPanel({ messages, isLoading, onSend, onStop }: Props) {
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="px-4 py-3 border-b border-gray-200">
-        <h1 className="font-semibold text-gray-900 text-sm">✨ Sesame Agent</h1>
-        <p className="text-xs text-gray-400 mt-0.5">描述你的想法，AI 为你生成应用</p>
+        <p className="text-xs text-gray-400">描述你的想法，AI 为你生成应用</p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">

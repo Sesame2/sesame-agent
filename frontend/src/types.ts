@@ -13,6 +13,16 @@ export interface HistoryResponse {
   messages: Message[];
 }
 
+export interface Session {
+  id: string;
+  title: string;
+  created_at: string;
+}
+
+export interface SessionsResponse {
+  sessions: Session[];
+}
+
 export interface User {
   id: string;
   username: string;

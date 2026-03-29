@@ -2,6 +2,7 @@ import { type Components } from 'react-markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Message } from '../types';
+import { fixStreamingCodeBlocks } from '../utils/sanitizeMarkdown';
 import { LoadingDots } from './LoadingDots';
 
 /**
@@ -95,7 +96,7 @@ export function MessageBubble({ message }: Props) {
             remarkPlugins={[remarkGfm]}
             components={markdownComponents}
           >
-            {message.content}
+            {fixStreamingCodeBlocks(message.content)}
           </ReactMarkdown>
         )}
         {message.isStreaming && message.content !== '' && (

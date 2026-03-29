@@ -1,17 +1,14 @@
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { fixStreamingCodeBlocks } from './sanitizeMarkdown';
 
 /**
  * 将 Markdown 文本渲染为 HTML 字符串
  * 提取为独立函数以便测试和复用
  */
 export function renderMarkdown(content: string): string {
-  // 我们需要一个轻量级的方式在测试中渲染 react-markdown
-  // 但在测试环境中 react-markdown 的组件渲染会涉及 DOM
-  // 所以这里导出一个简单的 "纯文字转 HTML" 作为参考
-  // 实际组件渲染逻辑在 components 配置中
-  return _renderWithReactMarkdown(content);
+  return _renderWithReactMarkdown(fixStreamingCodeBlocks(content));
 }
 
 function _renderWithReactMarkdown(content: string): string {

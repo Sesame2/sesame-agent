@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, register, setToken } from '../api/client';
+import { setUser } from '../hooks/useUserContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export function LoginPage() {
         ? await register(username, password)
         : await login(username, password);
       setToken(result.token);
+      setUser({ id: result.user_id, username: result.username });
       navigate('/');
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
